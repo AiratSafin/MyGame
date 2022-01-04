@@ -1,5 +1,6 @@
 import os
 import sys
+from random import choice
 
 import pygame
 import pytmx
@@ -25,6 +26,65 @@ def load_image(name, anime):
 class Spider(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
+        self.vx = 0
+        self.vy = 0
+        self.position()
+        self.x = 9
+        self.y = 56
+
+    def position(self):
+        self.image_list_0 = [load_image('s_0_0.png', 'spider'), load_image('s_0_1.png', 'spider'),
+                             load_image('s_0_2.png', 'spider'), load_image('s_0_3.png', 'spider'),
+                             load_image('s_0_4.png', 'spider'), load_image('s_0_5.png', 'spider'),
+                             ]
+        self.image_list_1 = [load_image('s_1_0.png', 'spider'), load_image('s_1_1.png', 'spider'),
+                             load_image('s_1_2.png', 'spider'), load_image('s_1_3.png', 'spider'),
+                             load_image('s_1_4.png', 'spider'), load_image('s_1_5.png', 'spider'),
+                             ]
+        self.image_list_2 = [load_image('s_2_0.png', 'spider'), load_image('s_2_1.png', 'spider'),
+                             load_image('s_2_2.png', 'spider'), load_image('s_2_3.png', 'spider'),
+                             load_image('s_2_4.png', 'spider'), load_image('s_2_5.png', 'spider'),
+                             ]
+        self.image_list_3 = [load_image('s_3_0.png', 'spider'), load_image('s_3_1.png', 'spider'),
+                             load_image('s_3_2.png', 'spider'), load_image('s_3_3.png', 'spider'),
+                             load_image('s_3_4.png', 'spider'), load_image('s_3_5.png', 'spider'),
+                             ]
+        self.image = self.image_list_0[0]
+        self.rect = self.image.get_rect()
+
+        self.rect.x = 500
+        self.rect.y = 400
+        self.count = 0
+        self.direction = 0
+        self.list_direction = [0, 1, 2, 3]
+
+    def update(self):
+        self.count += 1
+        self.rect = self.rect.move(self.vx, self.vy)
+        self.object_protection()
+        if self.direction == 0:
+            self.image = self.image_list_0[self.count % 6]
+            self.vy=-5
+            self.vx=0
+        if self.direction == 1:
+            self.image = self.image_list_1[self.count % 6]
+            self.vy = 5
+            self.vx = 0
+        if self.direction == 2:
+            self.vy = 0
+            self.vx = -5
+            self.image = self.image_list_2[self.count % 6]
+        if self.direction == 3:
+            self.vy = 0
+            self.vx = 5
+            self.image = self.image_list_3[self.count % 6]
+
+    def object_protection(self):
+        if self.count % 30 == 0:
+            a = self.list_direction.pop(self.list_direction.index(self.direction))
+            self.direction = choice(self.list_direction)
+            self.list_direction.append(a)
+            self.count = 0
 
 
 class Hero(pygame.sprite.Sprite):
@@ -127,6 +187,9 @@ def main():
     screen = pygame.display.set_mode(WINDOW_SIZE)
     board = Board()
     hero = Hero(12, 2)
+    for i in range(5):
+        spider_group.add(Spider(i + 20, i + 30))
+
     board.set_view(0, 0)
     runnig = True
     while runnig:
