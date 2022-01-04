@@ -44,7 +44,7 @@ class Spider(pygame.sprite.Sprite):
         self.position()
         self.x = x
         self.y = y
-        self.live = 100
+        self.live = 50
         self.is_atack = False
 
     def position(self):
@@ -144,7 +144,7 @@ class Hero(pygame.sprite.Sprite):
                                  load_image('hero_a_4.png', 'hero')]
         self.is_atack = False
         self.count_atack = 0
-        self.live = 100
+        self.live = 1000
 
     def move(self):
         self.image_list_y_0 = [load_image('hero_0_0.png', 'hero'), load_image('hero_0_1.png', 'hero'),
