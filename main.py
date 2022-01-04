@@ -1,6 +1,6 @@
 import os
 import sys
-from random import choice
+from random import choice, randint
 
 import pygame
 import pytmx
@@ -10,6 +10,9 @@ fps = 30
 
 all_sprites = pygame.sprite.Group()
 spider_group = pygame.sprite.Group()
+hero_group = pygame.sprite.Group()
+vertical_borders = pygame.sprite.Group()
+horizontal_borders = pygame.sprite.Group()
 
 
 def load_image(name, anime):
@@ -23,14 +26,26 @@ def load_image(name, anime):
     return image
 
 
+class Border(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, heigth):
+        super(Border, self).__init__(all_sprites)
+        self.image = pygame.Surface((width, heigth))
+        pygame.draw.rect(self.image, (0, 0, 0), (0, 0, width, heigth), 1)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+
 class Spider(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
         self.vx = 0
         self.vy = 0
         self.position()
-        self.x = 9
-        self.y = 56
+        self.x = x
+        self.y = y
+        self.live = 100
+        self.is_atack = False
 
     def position(self):
         self.image_list_0 = [load_image('s_0_0.png', 'spider'), load_image('s_0_1.png', 'spider'),
@@ -49,6 +64,8 @@ class Spider(pygame.sprite.Sprite):
                              load_image('s_3_2.png', 'spider'), load_image('s_3_3.png', 'spider'),
                              load_image('s_3_4.png', 'spider'), load_image('s_3_5.png', 'spider'),
                              ]
+        self.image_h_list = [load_image('s_h_0.png', 'spider'), load_image('s_h_1.png', 'spider'),
+                             load_image('s_h_2.png', 'spider'), load_image('s_h_3.png', 'spider')]
         self.image = self.image_list_0[0]
         self.rect = self.image.get_rect()
 
@@ -59,25 +76,49 @@ class Spider(pygame.sprite.Sprite):
         self.list_direction = [0, 1, 2, 3]
 
     def update(self):
+        if self.live <= 0:
+            self.image = self.image_h_list[self.count % 4]
+            self.vy = 0
+            self.vx = 0
+
+            if self.count > 28:
+                spider_group.remove(self)
+                self.kill()
+
+        elif pygame.sprite.spritecollideany(self, vertical_borders):
+            print(self)
+            self.vx *= -1
+            self.vy *= -1
+        elif pygame.sprite.spritecollideany(self, horizontal_borders):
+            print(self)
+            self.vy *= -1
+            self.vx *= -1
+        else:
+
+            if self.direction == 0:
+                self.image = self.image_list_0[self.count % 6]
+                self.vy = -5
+                self.vx = 0
+            if self.direction == 1:
+                self.image = self.image_list_1[self.count % 6]
+                self.vy = 5
+                self.vx = 0
+            if self.direction == 2:
+                self.vy = 0
+                self.vx = -5
+                self.image = self.image_list_2[self.count % 6]
+            if self.direction == 3:
+                self.vy = 0
+                self.vx = 5
+                self.image = self.image_list_3[self.count % 6]
         self.count += 1
         self.rect = self.rect.move(self.vx, self.vy)
+        if pygame.sprite.spritecollideany(self, hero_group) and hero.is_atack:
+            self.live -= 10
+        pygame.draw.rect(self.image, (0, 0, 0), (self.image.get_width() // 2 - 10, 0, 20, 5), 0)
+        pygame.draw.rect(self.image, (255, 0, 0), (self.image.get_width() // 2 - 10, 0, int((20 / 100) * self.live), 5))
+        pygame.draw.rect(self.image, (255, 0, 0), (self.image.get_width() // 2 - 10, 0, 20, 5), 1)
         self.object_protection()
-        if self.direction == 0:
-            self.image = self.image_list_0[self.count % 6]
-            self.vy=-5
-            self.vx=0
-        if self.direction == 1:
-            self.image = self.image_list_1[self.count % 6]
-            self.vy = 5
-            self.vx = 0
-        if self.direction == 2:
-            self.vy = 0
-            self.vx = -5
-            self.image = self.image_list_2[self.count % 6]
-        if self.direction == 3:
-            self.vy = 0
-            self.vx = 5
-            self.image = self.image_list_3[self.count % 6]
 
     def object_protection(self):
         if self.count % 30 == 0:
@@ -103,7 +144,7 @@ class Hero(pygame.sprite.Sprite):
                                  load_image('hero_a_4.png', 'hero')]
         self.is_atack = False
         self.count_atack = 0
-        self.live = 50
+        self.live = 100
 
     def move(self):
         self.image_list_y_0 = [load_image('hero_0_0.png', 'hero'), load_image('hero_0_1.png', 'hero'),
@@ -148,9 +189,16 @@ class Hero(pygame.sprite.Sprite):
             self.image = self.image_atack_lict[self.count_atack % 5]
 
         self.rect = self.rect.move(self.vx, self.vy)
+        list_atack = pygame.sprite.spritecollide(self, spider_group, False)
+        if list_atack:
+            for spider in list_atack:
+                if spider.live > 0:
+                    self.live = max(self.live - 1, 0)
 
-        pygame.draw.rect(self.image, (0, 255, 0), (5, 0, int((20 / 100) * self.live), 5))
-        pygame.draw.rect(self.image, (0, 255, 0), (5, 0, 20, 5), 1)
+        pygame.draw.rect(self.image, (0, 0, 0), (0, 0, 20, 5), 0)
+        pygame.draw.rect(self.image, (0, 255, 0), (0, 0, (20 * self.live) // 100, 5))
+        pygame.draw.rect(self.image, (0, 255, 0), (0, 0, 20, 5), 1)
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Board:
@@ -181,14 +229,24 @@ class Board:
         return self.left + self.cell_size * x, self.top + self.cell_size * y
 
 
+hero = Hero(12, 2)
+hero_group.add(hero)
+
+
 def main():
     pygame.init()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode(WINDOW_SIZE)
+    horizontal_borders.add(Border(0, 0, WIDTH, 10))
+    horizontal_borders.add(Border(0, HEIGTH - 10, WIDTH, 10))
+    vertical_borders.add(Border(0, 0, 10, HEIGTH))
+    vertical_borders.add(Border(WIDTH - 10, 0, 10, HEIGTH))
+
     board = Board()
-    hero = Hero(12, 2)
-    for i in range(5):
-        spider_group.add(Spider(i + 20, i + 30))
+
+    for i in range(10):
+        spider = Spider(randint(10, 1000), randint(10, 500))
+        spider_group.add(spider)
 
     board.set_view(0, 0)
     runnig = True
@@ -211,6 +269,7 @@ def main():
                 click = event.button
                 if click == 1:
                     hero.is_atack = True
+
                     hero.count_atack += 1
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
