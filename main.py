@@ -8,6 +8,7 @@ import pytmx
 WINDOW_SIZE = WIDTH, HEIGTH = 3200, 2400
 SCALE = 10
 fps = 20
+ALPHA = 180
 
 all_sprites = pygame.sprite.Group()
 all_sprites_mini = pygame.sprite.Group()
@@ -231,12 +232,35 @@ class Hero(pygame.sprite.Sprite):
         mini_hero.rect.y = self.rect.y // 10
 
     def get_mini(self, image_mini):
-        mini_hero.image = pygame.transform.scale(image_mini, (10, 14))
+        mini_hero.image = pygame.transform.scale(image_mini, (12, 16))
 
 
 class BottomPanel:
-    def __init__(self, screen):
-        
+    def __init__(self, screen, screen_mini):
+        screen.set_alpha(200)
+        width_line = 10
+        pygame.draw.rect(screen, (125, 125, 125),
+                         (0, pygame.display.Info().current_h - width_line, pygame.display.Info().current_w, width_line),
+                         0)
+        pygame.draw.rect(screen, (125, 125, 125),
+                         (0, pygame.display.Info().current_h - screen_mini.get_height() - 10, screen_mini.get_width(),
+                          width_line), 0)
+        pygame.draw.rect(screen, (125, 125, 125),
+                         (0, pygame.display.Info().current_h - screen_mini.get_height() - 10, width_line,
+                          screen_mini.get_height()), 0)
+        pygame.draw.rect(screen, (125, 125, 125),
+                         (screen_mini.get_width(), pygame.display.Info().current_h - screen_mini.get_height() - 10,
+                          width_line,
+                          screen_mini.get_height()), 0)
+        pygame.draw.rect(screen, (100, 100, 255),
+                         (screen_mini.get_width(), pygame.display.Info().current_h - 50,
+                          pygame.display.Info().current_w - screen_mini.get_width(),
+                          50), 0)
+        pygame.draw.rect(screen, (100, 100, 255),
+                         (0, 0, pygame.display.Info().current_w, width_line), 0)
+        pygame.draw.rect(screen, (100, 100, 255), (0, 0, width_line, pygame.display.Info().current_h), 0)
+        pygame.draw.rect(screen, (100, 100, 255),
+                         (pygame.display.Info().current_w-width_line, 0, width_line, pygame.display.Info().current_h), 0)
 
 
 class Board:
@@ -338,11 +362,6 @@ def is_klav():
         hero.count_atack += 1
 
 
-mini_hero = MiniHero()
-hero = Hero(50, 50)
-hero_group.add(hero)
-
-
 def main():
     pygame.init()
     border()
@@ -353,10 +372,12 @@ def main():
     screen_1 = pygame.Surface(WINDOW_SIZE)
     screen_1 = board.render(screen_1).copy()
     screen_mini = pygame.transform.scale(screen_1.copy(), (WIDTH // SCALE, HEIGTH // SCALE))
+    screen_mini.set_alpha(ALPHA)
     screen_mini_1 = screen_mini.copy()
+    screen_mini_1.set_alpha(ALPHA)
 
     screen_bottom_panel = screen_1.copy()
-    BottomPanel(screen_bottom_panel)
+    BottomPanel(screen_bottom_panel, screen_mini)
 
     for i in range(10):
         spider = Spider(randint(10, 1000), randint(10, 500))
@@ -374,9 +395,11 @@ def main():
 
         screen.blit(screen_1, (0, 0))
         all_sprites.update()
+        screen.blit(screen_bottom_panel, (0, 0))
         all_sprites.draw(screen)
 
         all_sprites_mini.update()
+
         screen_mini.blit(screen_mini_1, (0, 0))
         all_sprites_mini.draw(screen_mini)
         screen.blit(screen_mini, (5, pygame.display.Info().current_h - screen_mini.get_height() - 5))
@@ -386,6 +409,10 @@ def main():
 
     pygame.quit()
 
+
+mini_hero = MiniHero()
+hero = Hero(50, 50)
+hero_group.add(hero)
 
 if __name__ == '__main__':
     main()
