@@ -236,6 +236,7 @@ class Hero(pygame.sprite.Sprite):
 
 class BottomPanel:
     def __init__(self, screen):
+        
 
 
 class Board:
