@@ -5,7 +5,11 @@ from random import choice
 import pygame
 import pytmx
 
+
 pygame.init()
+
+pygame.mixer.music.load('data/sound/treasure_hunter.mp3')
+pygame.mixer.music.play()
 Timer_Spider_TYPE = 10
 WINDOW_SIZE = WIDTH, HEIGTH = 2732, 1536
 SCALE = 10
@@ -41,6 +45,7 @@ class Board:
         self.left = 0
         self.top = 0
 
+
     def set_view(self, left, top):
         self.left = left
         self.top = top
@@ -57,10 +62,10 @@ class Board:
                 image_1 = self.map.get_tile_image(x, y, 1)
                 if image_1:
 
-                    if self.map.get_tile_gid(x, y, 1) not in [104, 105, 106, 107, 116, 117, 118, 119, 122, 123, 129,
+                    if self.map.get_tile_gid(x, y, 1) not in [119, 122, 123, 129, 117, 118, 106, 107, 117, 118,
                                                               130, 135, 136, 131, 128, 121, 134, 124, 125, 141, 188,
                                                               189, 205, 206, 126, 133, 120, 202, 203, 149, 201, 204,
-                                                              207,
+                                                              207, 108, 109, 110, 111,
                                                               132, 137, 138, 139, 140, 182, 183, 199, 200, 100, 103,
                                                               202, 203, 208, 209, 210, 211, 240, 241, 173, 174, 202,
                                                               203, 190, 191, 396]:
@@ -68,12 +73,12 @@ class Board:
                         id_tiled = self.map.get_tile_gid(x, y, 1)
                         BOARD[y][x] = id_tiled
                     else:
-                        if self.map.get_tile_gid(x, y, 1) in [104, 105, 106, 107, 116, 117]:
+                        if self.map.get_tile_gid(x, y, 1) in [101, 102, 108, 109, 110, 111]:
                             object_sprites.add(Object_Map(image_1, y, x, self.cell_size))
                     screen_1.blit(image_1, (self.left + x * self.cell_size, self.top + y * self.cell_size))
 
-        for row in BOARD:
-            print(row)
+        # for row in BOARD:
+        #     print(row)
         return screen_1
 
     def get_cell(self, x, y):
@@ -95,7 +100,8 @@ class Spider(pygame.sprite.Sprite):
         self.board = board
         self.delay = 100
         pygame.time.set_timer(Timer_Spider_TYPE, self.delay)
-
+        self.sound_atack=pygame.mixer.Sound('data/sound/spider/spider_attack.wav')
+        self.sound_die=pygame.mixer.Sound('data/sound/spider/spider_die.wav')
     def __str__(self):
         return f'v={self.v}, x={self.rect.x}, y={self.rect.y}'
 
@@ -144,6 +150,7 @@ class Spider(pygame.sprite.Sprite):
     def update(self):
         self.count += 1
         if self.hp <= 0:
+            self.sound_die.play()
             self.image = self.image_h_list[self.count % 4]
             self.vy = 0
             self.vx = 0
@@ -200,6 +207,8 @@ class Spider(pygame.sprite.Sprite):
             self.rect.x -= 10
             self.rect.y -= 10
         if pygame.sprite.spritecollideany(self, hero_group) and hero.is_atack:
+            if hero.count_atack%5==0:
+                hero.sound_hit_1.play()
             self.hp -= hero.damage
         pygame.draw.rect(self.image, (0, 0, 0), (self.image.get_width() // 2 - 10, 0, 20, 5), 0)
         pygame.draw.rect(self.image, (255, 0, 0),
@@ -224,6 +233,8 @@ class Spider(pygame.sprite.Sprite):
             return False
 
     def metod_atack(self):
+        if self.count%3==0:
+            self.sound_atack.play()
 
         x_s = self.rect.x + self.rect.width // 2
         x_h = hero.rect.x + hero.rect.width // 2
@@ -293,6 +304,8 @@ class Hero(pygame.sprite.Sprite):
         self.move()
         self.atack()
         self.level = 1
+        self.sound_hit=pygame.mixer.Sound('data/sound/hero/Tissue Out Of Box Sfx.wav')
+        self.sound_hit_1=pygame.mixer.Sound('data/sound/hero/Weapon Blow.wav')
 
     def atack(self):
         self.image_atack_lict = [load_image('hero_a_0.png', 'hero'), load_image('hero_a_1.png', 'hero'),
@@ -349,6 +362,9 @@ class Hero(pygame.sprite.Sprite):
         if self.is_klav_x_1:
             self.image = self.image_list_x_1[self.count_x_1 % 6]
         if self.is_atack:
+            if self.count_atack%5==0:
+
+                self.sound_hit.play()
             self.image = self.image_atack_lict[self.count_atack % 5]
 
         list_atack = pygame.sprite.spritecollide(self, spider_group, False)
@@ -512,6 +528,10 @@ def is_klav(board):
 
 
 def main():
+    pygame.mixer.music.load('data/sound/treasure_hunter.mp3')
+    pygame.mixer.music.set_volume(0.1)
+    pygame.mixer.music.play(loops=-1)
+
     start_the_game = False
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode()
