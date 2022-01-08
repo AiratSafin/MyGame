@@ -59,8 +59,11 @@ class Board:
 
                     if self.map.get_tile_gid(x, y, 1) not in [104, 105, 106, 107, 116, 117, 118, 119, 122, 123, 129,
                                                               130, 135, 136, 131, 128, 121, 134, 124, 125, 141, 188,
-                                                              189, 205, 206,
-                                                              132, 137, 138, 139, 140, 182, 183, 199, 200]:
+                                                              189, 205, 206, 126, 133, 120, 202, 203, 149, 201, 204,
+                                                              207,
+                                                              132, 137, 138, 139, 140, 182, 183, 199, 200, 100, 103,
+                                                              202, 203, 208, 209, 210, 211, 240, 241, 173, 174, 202,
+                                                              203, 190, 191, 396]:
 
                         id_tiled = self.map.get_tile_gid(x, y, 1)
                         BOARD[y][x] = id_tiled
@@ -80,8 +83,7 @@ class Board:
 class Spider(pygame.sprite.Sprite):
     def __init__(self, x, y, v, live, board, vision=150):
         super().__init__(all_sprites)
-        self.vx = 0
-        self.vy = 0
+
         self.x = x
         self.y = y
         self.v = v
@@ -93,6 +95,9 @@ class Spider(pygame.sprite.Sprite):
         self.board = board
         self.delay = 100
         pygame.time.set_timer(Timer_Spider_TYPE, self.delay)
+
+    def __str__(self):
+        return f'v={self.v}, x={self.rect.x}, y={self.rect.y}'
 
     def position(self):
         self.image_list_0 = [load_image('s_0_0.png', 'spider'), load_image('s_0_1.png', 'spider'),
@@ -139,18 +144,14 @@ class Spider(pygame.sprite.Sprite):
     def update(self):
         self.count += 1
         if self.hp <= 0:
-
             self.image = self.image_h_list[self.count % 4]
             self.vy = 0
             self.vx = 0
-
             if self.count > 19:
                 spider_group.remove(self)
                 self.kill()
-
         elif self.metod_vision():
             self.metod_atack()
-
         elif self.direction == 0:
             x, y = self.board.get_cell(self.rect.x + self.image.get_width() // 2,
                                        self.rect.y + self.image.get_height() // 2 - self.v)
@@ -162,7 +163,6 @@ class Spider(pygame.sprite.Sprite):
             else:
                 self.direction = choice((1, 2, 3))
                 self.count = 0
-
         elif self.direction == 1:
             x, y = self.board.get_cell(self.rect.x + self.image.get_width() // 2,
                                        self.rect.y + self.image.get_height() // 2 + self.v)
@@ -174,7 +174,6 @@ class Spider(pygame.sprite.Sprite):
             else:
                 self.direction = choice((0, 2, 3))
                 self.count = 0
-
         elif self.direction == 2:
             x, y = self.board.get_cell(self.rect.x - self.v + self.image.get_width() // 2,
                                        self.rect.y + self.image.get_height() // 2)
@@ -186,7 +185,6 @@ class Spider(pygame.sprite.Sprite):
             else:
                 self.direction = choice((0, 1, 3))
                 self.count = 0
-
         elif self.direction == 3:
             x, y = self.board.get_cell(self.rect.x + self.v + self.image.get_width() // 2,
                                        self.rect.y + self.image.get_height() // 2)
@@ -198,11 +196,9 @@ class Spider(pygame.sprite.Sprite):
             else:
                 self.direction = choice((0, 1, 2))
                 self.count = 0
-
         else:
-            self.rect.x-=10
-            self.rect.y-=10
-
+            self.rect.x -= 10
+            self.rect.y -= 10
         if pygame.sprite.spritecollideany(self, hero_group) and hero.is_atack:
             self.hp -= hero.damage
         pygame.draw.rect(self.image, (0, 0, 0), (self.image.get_width() // 2 - 10, 0, 20, 5), 0)
@@ -222,7 +218,6 @@ class Spider(pygame.sprite.Sprite):
         x_1, y_1, r_1 = self.rect.x + self.rect.width // 2, self.rect.y + self.rect.height // 2, self.vision
         x_2, y_2, r_2 = hero.rect.x + hero.rect.width // 2, hero.rect.y + hero.rect.height // 2, hero.rect.width // 2
         l = ((x_1 - x_2) ** 2 + (y_1 - y_2) ** 2) ** 0.5
-
         if l <= r_1 + r_2:
             return True
         else:
@@ -341,9 +336,10 @@ class Hero(pygame.sprite.Sprite):
         self.is_klav_x_1 = False
 
     def update(self):
+
         self.damage = max(self.experience // 10, 10)
         if pygame.sprite.spritecollideany(self, object_sprites):
-            self.live = min(self.live + 0.05, self.live_max)
+            self.live = min(self.live + 0.15, self.live_max)
         if self.is_klav_y_2:
             self.image = self.image_list_y_0[self.count_y_2 % 6]
         if self.is_klav_y_1:
@@ -516,22 +512,24 @@ def is_klav(board):
 
 
 def main():
+    start_the_game = False
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode()
 
     board = Board()
-    # for i in range(20):
-    #     spider = Spider(750, 300, 3, 50, board, vision=30)
-    #     spider_group.add(spider)
-    # for i in range(30):
-    #     spider = Spider(WIDTH // 2 + 750, 300, 3, 80, board, vision=50)
-    #     spider_group.add(spider)
-    # for i in range(40):
-    #     spider = Spider(WIDTH // 2 + 750, HEIGTH // 2 + 300, 4, 100, board, vision=80)
-    #     spider_group.add(spider)
-    # for i in range(50):
-    #     spider = Spider(750, HEIGTH // 2 + 300, 5, 100, board, vision=100)
-    #     spider_group.add(spider)
+
+    for i in range(20):
+        spider = Spider(1000, 400, 3, 50, board, vision=30)
+        spider_group.add(spider)
+    for i in range(30):
+        spider = Spider(WIDTH // 2 + 750, 300, 4, 80, board, vision=50)
+        spider_group.add(spider)
+    for i in range(40):
+        spider = Spider(WIDTH // 2 + 750, HEIGTH // 2 + 300, 5, 100, board, vision=80)
+        spider_group.add(spider)
+    for i in range(50):
+        spider = Spider(750, HEIGTH // 2 + 300, 7, 100, board, vision=100)
+        spider_group.add(spider)
 
     full_screen = pygame.Surface(WINDOW_SIZE)
     board.render(full_screen)
@@ -539,7 +537,7 @@ def main():
     screen_mini.set_alpha(ALPHA)
     screen_mini_temp = screen_mini.copy()
     screen_mini_temp.set_alpha(ALPHA)
-    screen_bottom_panel = screen.copy()
+
     full_screen_temp = full_screen.copy()
 
     board.set_view(0, 0)
@@ -551,12 +549,30 @@ def main():
                 runnig = False
             if event.type == Timer_Spider_TYPE:
                 pass
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    start_the_game = True
             handling_mouse_actions(event)
             handling_keyboard_actions(event)
 
         screen.fill((0, 0, 0))
         full_screen.blit(full_screen_temp, (0, 0))
-        if hero.rect.x < WIDTH // 2 and hero.rect.y < HEIGTH // 2:
+        if not start_the_game:
+            image = pygame.image.load('data\image\splash screen.jpg')
+            screen.blit(image, (0, 0))
+        elif hero.live <= 0:
+            font = pygame.font.Font(None, 100)
+            text = font.render('Вы проиграли!', True, (0, 255, 0))
+            screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
+                               pygame.display.Info().current_h // 2 - text.get_height() // 2))
+        elif hero.rect.x < 32 and HEIGTH - 16 * 21 - 16 * 7 < hero.rect.y < HEIGTH - 16 * 21:
+
+            font = pygame.font.Font(None, 100)
+            text = font.render('Вы выйграли!', True, (0, 255, 0))
+            screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
+                               pygame.display.Info().current_h // 2 - text.get_height() // 2))
+
+        elif hero.rect.x < WIDTH // 2 and hero.rect.y < HEIGTH // 2:
             all_sprites.update()
             all_sprites.draw(full_screen)
             screen.blit(full_screen, (0, 0), (0, 0, WIDTH // 2, HEIGTH // 2))
@@ -565,6 +581,7 @@ def main():
             all_sprites_mini.draw(screen_mini)
             BottomPanel(screen, screen_mini)
             hero.level = 1
+            screen.blit(screen_mini, (5, pygame.display.Info().current_h - screen_mini.get_height() - 5))
         elif hero.rect.x > WIDTH // 2 and hero.rect.y < HEIGTH // 2:
             all_sprites.update()
             all_sprites.draw(full_screen)
@@ -574,6 +591,7 @@ def main():
             all_sprites_mini.draw(screen_mini)
             BottomPanel(screen, screen_mini)
             hero.level = 2
+            screen.blit(screen_mini, (5, pygame.display.Info().current_h - screen_mini.get_height() - 5))
         elif hero.rect.x > WIDTH // 2 and hero.rect.y > HEIGTH // 2:
             all_sprites.update()
             all_sprites.draw(full_screen)
@@ -583,6 +601,7 @@ def main():
             all_sprites_mini.draw(screen_mini)
             BottomPanel(screen, screen_mini)
             hero.level = 3
+            screen.blit(screen_mini, (5, pygame.display.Info().current_h - screen_mini.get_height() - 5))
         elif hero.rect.x < WIDTH // 2 and hero.rect.y > HEIGTH // 2:
             all_sprites.update()
             all_sprites.draw(full_screen)
@@ -592,7 +611,8 @@ def main():
             all_sprites_mini.draw(screen_mini)
             BottomPanel(screen, screen_mini)
             hero.level = 4
-        screen.blit(screen_mini, (5, pygame.display.Info().current_h - screen_mini.get_height() - 5))
+            screen.blit(screen_mini, (5, pygame.display.Info().current_h - screen_mini.get_height() - 5))
+
         clock.tick(fps)
         pygame.display.flip()
 
