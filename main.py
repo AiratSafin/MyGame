@@ -4,7 +4,7 @@ from random import choice
 
 import pygame
 import pytmx
-
+import  pickle
 
 pygame.init()
 
@@ -44,7 +44,6 @@ class Board:
         self.cell_size = self.map.tilewidth
         self.left = 0
         self.top = 0
-
 
     def set_view(self, left, top):
         self.left = left
@@ -100,8 +99,9 @@ class Spider(pygame.sprite.Sprite):
         self.board = board
         self.delay = 100
         pygame.time.set_timer(Timer_Spider_TYPE, self.delay)
-        self.sound_atack=pygame.mixer.Sound('data/sound/spider/spider_attack.wav')
-        self.sound_die=pygame.mixer.Sound('data/sound/spider/spider_die.wav')
+        self.sound_atack = pygame.mixer.Sound('data/sound/spider/spider_attack.wav')
+        self.sound_die = pygame.mixer.Sound('data/sound/spider/spider_die.wav')
+
     def __str__(self):
         return f'v={self.v}, x={self.rect.x}, y={self.rect.y}'
 
@@ -207,7 +207,7 @@ class Spider(pygame.sprite.Sprite):
             self.rect.x -= 10
             self.rect.y -= 10
         if pygame.sprite.spritecollideany(self, hero_group) and hero.is_atack:
-            if hero.count_atack%5==0:
+            if hero.count_atack % 5 == 0:
                 hero.sound_hit_1.play()
             self.hp -= hero.damage
         pygame.draw.rect(self.image, (0, 0, 0), (self.image.get_width() // 2 - 10, 0, 20, 5), 0)
@@ -233,7 +233,7 @@ class Spider(pygame.sprite.Sprite):
             return False
 
     def metod_atack(self):
-        if self.count%3==0:
+        if self.count % 3 == 0:
             self.sound_atack.play()
 
         x_s = self.rect.x + self.rect.width // 2
@@ -304,8 +304,9 @@ class Hero(pygame.sprite.Sprite):
         self.move()
         self.atack()
         self.level = 1
-        self.sound_hit=pygame.mixer.Sound('data/sound/hero/Tissue Out Of Box Sfx.wav')
-        self.sound_hit_1=pygame.mixer.Sound('data/sound/hero/Weapon Blow.wav')
+        self.sound_hit = pygame.mixer.Sound('data/sound/hero/Tissue Out Of Box Sfx.wav')
+        self.sound_hit_1 = pygame.mixer.Sound('data/sound/hero/Weapon Blow.wav')
+        self.GAME_END = False
 
     def atack(self):
         self.image_atack_lict = [load_image('hero_a_0.png', 'hero'), load_image('hero_a_1.png', 'hero'),
@@ -362,8 +363,7 @@ class Hero(pygame.sprite.Sprite):
         if self.is_klav_x_1:
             self.image = self.image_list_x_1[self.count_x_1 % 6]
         if self.is_atack:
-            if self.count_atack%5==0:
-
+            if self.count_atack % 5 == 0:
                 self.sound_hit.play()
             self.image = self.image_atack_lict[self.count_atack % 5]
 
@@ -458,7 +458,7 @@ def handling_mouse_actions(event):
 
 def handling_keyboard_actions(event):
     if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_p:
+        if event.key == pygame.K_ESCAPE:
             sys.exit()
         if event.key == pygame.K_w:
             hero.is_klav_y_1 = True
@@ -528,6 +528,7 @@ def is_klav(board):
 
 
 def main():
+    is_paused = 1
     pygame.mixer.music.load('data/sound/treasure_hunter.mp3')
     pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(loops=-1)
@@ -572,25 +573,51 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     start_the_game = True
+                # if event.key == pygame.K_o :
+                #     with open('data/saved games/save.sh', 'wb') as file:
+                #         pickle.dump(hero,file)
+                # if event.key==pygame.K_l:
+                #     with open('data/saved games/save.sh', 'rb') as file:
+                #         pickle.load(file)
+
+
+                if event.key == pygame.K_p:
+                    is_paused += 1
+
             handling_mouse_actions(event)
             handling_keyboard_actions(event)
 
         screen.fill((0, 0, 0))
         full_screen.blit(full_screen_temp, (0, 0))
-        if not start_the_game:
+
+        if is_paused % 2 == 0:
+            image = pygame.image.load('data\image\splash screen.jpg')
+            screen.blit(image, (0, 0))
+            font = pygame.font.Font(None, 150)
+            text = font.render('ПАУЗА!', True, (125, 255, 0))
+            screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
+                               pygame.display.Info().current_h // 2 - text.get_height() // 2))
+        elif not start_the_game:
             image = pygame.image.load('data\image\splash screen.jpg')
             screen.blit(image, (0, 0))
         elif hero.live <= 0:
-            font = pygame.font.Font(None, 100)
-            text = font.render('Вы проиграли!', True, (0, 255, 0))
+            image = pygame.image.load('data\image\splash screen end.jpg')
+            screen.blit(image, (0, 0))
+            font = pygame.font.Font(None, 150)
+            text = font.render('Вы проиграли!', True, (125, 255, 0))
             screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
                                pygame.display.Info().current_h // 2 - text.get_height() // 2))
-        elif hero.rect.x < 32 and HEIGTH - 16 * 21 - 16 * 7 < hero.rect.y < HEIGTH - 16 * 21:
 
-            font = pygame.font.Font(None, 100)
-            text = font.render('Вы выйграли!', True, (0, 255, 0))
+        elif hero.rect.x < 32 and HEIGTH - 16 * 21 - 16 * 7 < hero.rect.y < HEIGTH - 16 * 21 or hero.GAME_END:
+            image = pygame.image.load('data\image\splash screen end.jpg')
+            screen.blit(image, (0, 0))
+            font = pygame.font.Font(None, 150)
+            text = font.render('Вы выиграли!', True, (0, 255, 150))
             screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
                                pygame.display.Info().current_h // 2 - text.get_height() // 2))
+            hero.GAME_END = True
+
+
 
         elif hero.rect.x < WIDTH // 2 and hero.rect.y < HEIGTH // 2:
             all_sprites.update()
