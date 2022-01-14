@@ -90,12 +90,6 @@ def load_image(name, anime):
     return image
 
 
-#
-# class SaveGame(gui.Dialog):
-#     def __init__(self):
-#         super().__init()
-
-
 class Board:
 
     def __init__(self):
@@ -639,7 +633,7 @@ def main():
         full_screen.blit(full_screen_temp, (0, 0))
 
         if is_paused % 2 == 0:
-            image = pygame.image.load('data\image\splash screen.jpg')
+            image = pygame.image.load('data\image\splash screen pauza.jpg')
             screen.blit(image, (-10, 0))
             font = pygame.font.Font(None, 150)
             text = font.render('ПАУЗА!', True, (125, 255, 0))
