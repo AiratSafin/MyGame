@@ -1,10 +1,10 @@
 import os
 import sys
-from random import choice
+from random import choice, randrange
 
 import pygame
 import pytmx
-import  pickle
+import sqlite3
 
 pygame.init()
 
@@ -16,6 +16,7 @@ SCALE = 10
 fps = 20
 ALPHA = 180
 BOARD = []
+player = None
 
 all_sprites = pygame.sprite.Group()
 all_sprites_mini = pygame.sprite.Group()
@@ -24,6 +25,64 @@ hero_group = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
 horizontal_borders = pygame.sprite.Group()
 object_sprites = pygame.sprite.Group()
+
+
+def load_game(board):
+    for sprite in all_sprites:
+        sprite.kill()
+
+
+
+
+    with open('data/saved games/save.txt', 'r', encoding='utf-8') as file:
+        for line in file.readlines():
+            list_line = line.split('|')
+            list_line[1] = list_line[1].split(',')
+            if list_line[0] == 'hero':
+                for dan in list_line[1]:
+
+                    dan = dan.split(':')
+                    print(dan)
+                    if 'self.live' == dan[0]:
+                        hero.live = float(dan[1])
+                    elif ' self.rect.x' == dan[0]:
+                        hero.rect.x = int(dan[1])
+                    elif 'self.rect.y' == dan[0]:
+                        hero.rect.y = int(dan[1])
+                    elif 'self.damage' == dan[0]:
+                        hero.damage = int(dan[1])
+                    elif 'self.experience' == dan[0]:
+                        hero.experience = dan[1]
+                print(hero)
+                all_sprites.add(hero)
+                hero_group.add(hero)
+            elif list_line[0] == 'spider':
+
+                spider=Spider(100,100,100,100,board)
+
+                for dan in list_line[1]:
+                    dan = dan.split(':')
+                    if 'self.hp' == dan[0]:
+                        spider.hp = int(dan[1])
+                    elif ' self.rect.x' == dan[0]:
+                        spider.rect.x = int(dan[1])
+                    elif 'self.rect.y' == dan[0]:
+                        spider.rect.y = int(dan[1])
+                    elif 'self.vision' == dan[0]:
+                        spider.vision = int(dan[1])
+                    elif 'self.v' == dan[0]:
+                        spider.v = int(dan[1])
+                    elif 'self.live_max'==dan[0]:
+                        spider.live_max=int(dan[1])
+                print(spider)
+                all_sprites.add(spider)
+                spider_group.add(spider)
+
+
+def save_game():
+    with open('data/saved games/save.txt', 'w', encoding='utf-8') as file:
+        for sprite in all_sprites:
+            file.write(sprite.__str__() + '\n')
 
 
 def load_image(name, anime):
@@ -35,6 +94,12 @@ def load_image(name, anime):
     return image
 
 
+#
+# class SaveGame(gui.Dialog):
+#     def __init__(self):
+#         super().__init()
+
+
 class Board:
 
     def __init__(self):
@@ -44,6 +109,7 @@ class Board:
         self.cell_size = self.map.tilewidth
         self.left = 0
         self.top = 0
+        self.free_cells = []
 
     def set_view(self, left, top):
         self.left = left
@@ -61,19 +127,19 @@ class Board:
                 image_1 = self.map.get_tile_image(x, y, 1)
                 if image_1:
 
-                    if self.map.get_tile_gid(x, y, 1) not in [119, 122, 123, 129, 117, 118, 106, 107, 117, 118,
-                                                              130, 135, 136, 131, 128, 121, 134, 124, 125, 141, 188,
-                                                              189, 205, 206, 126, 133, 120, 202, 203, 149, 201, 204,
-                                                              207, 108, 109, 110, 111,
-                                                              132, 137, 138, 139, 140, 182, 183, 199, 200, 100, 103,
-                                                              202, 203, 208, 209, 210, 211, 240, 241, 173, 174, 202,
-                                                              203, 190, 191, 396]:
+                    if self.map.get_tile_gid(x, y, 1) not in [101, 102, 108, 109, 110, 111, 117, 118, 125, 126, 307,
+                                                              308, 307, 308, 173, 174, 190, 191, 114, 115, 121, 122,
+                                                              169, 170,
+                                                              183, 184, ]:
 
                         id_tiled = self.map.get_tile_gid(x, y, 1)
-                        BOARD[y][x] = id_tiled
+                        BOARD[y][x] = '#'
                     else:
-                        if self.map.get_tile_gid(x, y, 1) in [101, 102, 108, 109, 110, 111]:
+                        if 600 < x * self.cell_size < 1200 and 300 < y * self.cell_size < 600:
+                            self.free_cells.append((x * self.cell_size, y * self.cell_size))
+                        if self.map.get_tile_gid(x, y, 1) in [100, 101, 102, 103, 108, 109, 110, 111, 117, 118, ]:
                             object_sprites.add(Object_Map(image_1, y, x, self.cell_size))
+                            BOARD[y][x] = '#'
                     screen_1.blit(image_1, (self.left + x * self.cell_size, self.top + y * self.cell_size))
 
         # for row in BOARD:
@@ -103,7 +169,7 @@ class Spider(pygame.sprite.Sprite):
         self.sound_die = pygame.mixer.Sound('data/sound/spider/spider_die.wav')
 
     def __str__(self):
-        return f'v={self.v}, x={self.rect.x}, y={self.rect.y}'
+        return f'spider| self.rect.x:{self.rect.x},self.rect.y:{self.rect.y},self.hp:{self.hp},self.vision:{self.vision},self.v:{self.v},self.live_max:{self.live_max}'
 
     def position(self):
         self.image_list_0 = [load_image('s_0_0.png', 'spider'), load_image('s_0_1.png', 'spider'),
@@ -308,6 +374,9 @@ class Hero(pygame.sprite.Sprite):
         self.sound_hit_1 = pygame.mixer.Sound('data/sound/hero/Weapon Blow.wav')
         self.GAME_END = False
 
+    def __str__(self):
+        return f'hero| self.rect.x:{self.rect.x},self.rect.y:{self.rect.y},self.live:{self.live},self.damage:{self.damage}, self.experience:{self.experience}'
+
     def atack(self):
         self.image_atack_lict = [load_image('hero_a_0.png', 'hero'), load_image('hero_a_1.png', 'hero'),
                                  load_image('hero_a_2.png', 'hero'),
@@ -393,30 +462,30 @@ class BottomPanel:
         width_line = 10
         pygame.draw.rect(screen, (125, 125, 125),
                          (0, pygame.display.Info().current_h - width_line, pygame.display.Info().current_w, width_line),
-                         0)
+                         1)
         pygame.draw.rect(screen, (125, 125, 125),
                          (0, pygame.display.Info().current_h - screen_mini.get_height() - 10, screen_mini.get_width(),
                           width_line), 0)
         pygame.draw.rect(screen, (125, 125, 125),
                          (0, pygame.display.Info().current_h - screen_mini.get_height() - 10, width_line,
-                          screen_mini.get_height()), 0)
+                          screen_mini.get_height()), 1)
         pygame.draw.rect(screen, (125, 125, 125),
                          (screen_mini.get_width(), pygame.display.Info().current_h - screen_mini.get_height() - 10,
                           width_line,
-                          screen_mini.get_height()), 0)
+                          screen_mini.get_height()), 1)
         pygame.draw.rect(screen, (125, 125, 125),
                          (0, 0,
                           pygame.display.Info().current_w,
-                          30), 0)
+                          30), 1)
         pygame.draw.rect(screen, (125, 125, 125),
-                         (0, 0, pygame.display.Info().current_w, width_line), 0)
-        pygame.draw.rect(screen, (125, 125, 125), (0, 0, width_line, pygame.display.Info().current_h), 0)
+                         (0, 0, pygame.display.Info().current_w, width_line), 1)
+        pygame.draw.rect(screen, (125, 125, 125), (0, 0, width_line, pygame.display.Info().current_h), 1)
         pygame.draw.rect(screen, (125, 125, 125),
                          (pygame.display.Info().current_w - width_line, 0, width_line, pygame.display.Info().current_h),
-                         0)
+                         1)
 
         font = pygame.font.Font(None, 25)
-        text_experience = font.render(f'Опыт:{hero.experience}', True, (255, 0, 0))
+        text_experience = font.render(f'Опыт:{hero.experience}', True, (0, 255, 0))
         screen.blit(text_experience, (30, 10))
 
         font = pygame.font.Font(None, 25)
@@ -424,11 +493,11 @@ class BottomPanel:
         screen.blit(text_damage, (30 + text_experience.get_width() + 30, 10))
 
         font = pygame.font.Font(None, 25)
-        text_level = font.render(f'Уровень:{hero.level}', True, (0, 255, 255))
+        text_level = font.render(f'Уровень:{hero.level}', True, (0, 255, 0))
         screen.blit(text_level, (30 + text_experience.get_width() + 30 + text_damage.get_width() + 30, 10))
 
         font = pygame.font.Font(None, 25)
-        text_hp = font.render(f'Здоровье:{int(hero.live)}', True, (0, 255, 255))
+        text_hp = font.render(f'Здоровье:{int(hero.live)}', True, (0, 255, 0))
         screen.blit(text_hp, (
             30 + text_experience.get_width() + 30 + text_damage.get_width() + 30 + text_level.get_width() + 30, 10))
 
@@ -462,36 +531,23 @@ def handling_keyboard_actions(event):
             sys.exit()
         if event.key == pygame.K_w:
             hero.is_klav_y_1 = True
-            # hero.vy = -10
-
-
         elif event.key == pygame.K_s:
             hero.is_klav_y_2 = True
-            # hero.vy = 10
-
         if event.key == pygame.K_d:
-            # hero.vx = 10
             hero.is_klav_x_0 = True
-
         elif event.key == pygame.K_a:
-            # hero.vx = -10
             hero.is_klav_x_1 = True
-
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_w:
             hero.is_klav_y_1 = False
             hero.count_y_1 = 0
-            # hero.vy = 0
         if event.key == pygame.K_s:
             hero.is_klav_y_2 = False
             hero.count_y_2 = 0
-            # hero.vy = 0
         if event.key == pygame.K_d:
-            # hero.vx = 0
             hero.count_x_0 = 0
             hero.is_klav_x_0 = False
         if event.key == pygame.K_a:
-            # hero.vx = 0
             hero.count_x_1 = 0
             hero.is_klav_x_1 = False
 
@@ -538,9 +594,18 @@ def main():
     screen = pygame.display.set_mode()
 
     board = Board()
+    full_screen = pygame.Surface(WINDOW_SIZE)
+    board.render(full_screen)
+    screen_mini = pygame.transform.scale(full_screen.copy(), (WIDTH // SCALE, HEIGTH // SCALE))
+    screen_mini.set_alpha(ALPHA)
+    screen_mini_temp = screen_mini.copy()
+    screen_mini_temp.set_alpha(ALPHA)
+    full_screen_temp = full_screen.copy()
+    board.set_view(0, 0)
 
     for i in range(20):
-        spider = Spider(1000, 400, 3, 50, board, vision=30)
+        x, y = choice(board.free_cells)
+        spider = Spider(x, y, 3, 50, board, vision=30)
         spider_group.add(spider)
     for i in range(30):
         spider = Spider(WIDTH // 2 + 750, 300, 4, 80, board, vision=50)
@@ -552,16 +617,6 @@ def main():
         spider = Spider(750, HEIGTH // 2 + 300, 7, 100, board, vision=100)
         spider_group.add(spider)
 
-    full_screen = pygame.Surface(WINDOW_SIZE)
-    board.render(full_screen)
-    screen_mini = pygame.transform.scale(full_screen.copy(), (WIDTH // SCALE, HEIGTH // SCALE))
-    screen_mini.set_alpha(ALPHA)
-    screen_mini_temp = screen_mini.copy()
-    screen_mini_temp.set_alpha(ALPHA)
-
-    full_screen_temp = full_screen.copy()
-
-    board.set_view(0, 0)
     runnig = True
     while runnig:
         is_klav(board)
@@ -573,13 +628,10 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     start_the_game = True
-                # if event.key == pygame.K_o :
-                #     with open('data/saved games/save.sh', 'wb') as file:
-                #         pickle.dump(hero,file)
-                # if event.key==pygame.K_l:
-                #     with open('data/saved games/save.sh', 'rb') as file:
-                #         pickle.load(file)
-
+                if event.key == pygame.K_o:
+                    save_game()
+                if event.key==pygame.K_l:
+                    load_game(board)
 
                 if event.key == pygame.K_p:
                     is_paused += 1
@@ -592,33 +644,29 @@ def main():
 
         if is_paused % 2 == 0:
             image = pygame.image.load('data\image\splash screen.jpg')
-            screen.blit(image, (0, 0))
+            screen.blit(image, (-10, 0))
             font = pygame.font.Font(None, 150)
             text = font.render('ПАУЗА!', True, (125, 255, 0))
             screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
                                pygame.display.Info().current_h // 2 - text.get_height() // 2))
         elif not start_the_game:
             image = pygame.image.load('data\image\splash screen.jpg')
-            screen.blit(image, (0, 0))
+            screen.blit(image, (-10, 0))
         elif hero.live <= 0:
             image = pygame.image.load('data\image\splash screen end.jpg')
-            screen.blit(image, (0, 0))
+            screen.blit(image, (-10, 0))
             font = pygame.font.Font(None, 150)
             text = font.render('Вы проиграли!', True, (125, 255, 0))
             screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
                                pygame.display.Info().current_h // 2 - text.get_height() // 2))
-
         elif hero.rect.x < 32 and HEIGTH - 16 * 21 - 16 * 7 < hero.rect.y < HEIGTH - 16 * 21 or hero.GAME_END:
             image = pygame.image.load('data\image\splash screen end.jpg')
-            screen.blit(image, (0, 0))
+            screen.blit(image, (-10, 0))
             font = pygame.font.Font(None, 150)
             text = font.render('Вы выиграли!', True, (0, 255, 150))
             screen.blit(text, (pygame.display.Info().current_w // 2 - text.get_width() // 2,
                                pygame.display.Info().current_h // 2 - text.get_height() // 2))
             hero.GAME_END = True
-
-
-
         elif hero.rect.x < WIDTH // 2 and hero.rect.y < HEIGTH // 2:
             all_sprites.update()
             all_sprites.draw(full_screen)
