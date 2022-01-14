@@ -1,10 +1,9 @@
 import os
 import sys
-from random import choice, randrange
+from random import choice
 
 import pygame
 import pytmx
-import sqlite3
 
 pygame.init()
 
@@ -31,9 +30,6 @@ def load_game(board):
     for sprite in all_sprites:
         sprite.kill()
 
-
-
-
     with open('data/saved games/save.txt', 'r', encoding='utf-8') as file:
         for line in file.readlines():
             list_line = line.split('|')
@@ -58,7 +54,7 @@ def load_game(board):
                 hero_group.add(hero)
             elif list_line[0] == 'spider':
 
-                spider=Spider(100,100,100,100,board)
+                spider = Spider(100, 100, 100, 100, board)
 
                 for dan in list_line[1]:
                     dan = dan.split(':')
@@ -72,8 +68,8 @@ def load_game(board):
                         spider.vision = int(dan[1])
                     elif 'self.v' == dan[0]:
                         spider.v = int(dan[1])
-                    elif 'self.live_max'==dan[0]:
-                        spider.live_max=int(dan[1])
+                    elif 'self.live_max' == dan[0]:
+                        spider.live_max = int(dan[1])
                 print(spider)
                 all_sprites.add(spider)
                 spider_group.add(spider)
@@ -630,7 +626,7 @@ def main():
                     start_the_game = True
                 if event.key == pygame.K_o:
                     save_game()
-                if event.key==pygame.K_l:
+                if event.key == pygame.K_l:
                     load_game(board)
 
                 if event.key == pygame.K_p:
