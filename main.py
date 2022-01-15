@@ -487,10 +487,7 @@ class BottomPanel:
         screen.blit(text_hp, (
             30 + text_experience.get_width() + 30 + text_damage.get_width() + 30 + text_level.get_width() + 30, 10))
 
-        font = pygame.font.Font(None, 100)
-        text_exit = font.render(f'Exit', True, (0, 255, 0))
-        screen.blit(text_exit, (
-            , 10))
+
 
 
 class Object_Map(pygame.sprite.Sprite):
@@ -698,6 +695,9 @@ def main():
             BottomPanel(screen, screen_mini)
             hero.level = 4
             screen.blit(screen_mini, (5, pygame.display.Info().current_h - screen_mini.get_height() - 5))
+            font = pygame.font.Font(None, 50)
+            text_exit = font.render(f'Exit', True, (0, 255, 0))
+            screen.blit(text_exit, (20, 360))
 
         clock.tick(fps)
         pygame.display.flip()
