@@ -38,7 +38,7 @@ def load_game(board):
                 for dan in list_line[1]:
 
                     dan = dan.split(':')
-                    print(dan)
+                    # print(dan)
                     if 'self.live' == dan[0]:
                         hero.live = float(dan[1])
                     elif ' self.rect.x' == dan[0]:
@@ -49,7 +49,7 @@ def load_game(board):
                         hero.damage = int(dan[1])
                     elif 'self.experience' == dan[0]:
                         hero.experience = dan[1]
-                print(hero)
+                # print(hero)
                 all_sprites.add(hero)
                 hero_group.add(hero)
             elif list_line[0] == 'spider':
@@ -70,7 +70,7 @@ def load_game(board):
                         spider.v = int(dan[1])
                     elif 'self.live_max' == dan[0]:
                         spider.live_max = int(dan[1])
-                print(spider)
+                # print(spider)
                 all_sprites.add(spider)
                 spider_group.add(spider)
 
@@ -321,10 +321,6 @@ class Spider(pygame.sprite.Sprite):
                 self.rect.y += self.v
                 self.image = self.image_atacx_y_1[self.count % 4]
 
-
-
-
-
         elif y_s - y_h > 0 and y_s - y_h > 5:
             x, y = self.board.get_cell(self.rect.x + self.image.get_width() // 2,
                                        self.rect.y + self.image.get_height() // 2 - self.v)
@@ -491,6 +487,11 @@ class BottomPanel:
         screen.blit(text_hp, (
             30 + text_experience.get_width() + 30 + text_damage.get_width() + 30 + text_level.get_width() + 30, 10))
 
+        font = pygame.font.Font(None, 100)
+        text_exit = font.render(f'Exit', True, (0, 255, 0))
+        screen.blit(text_exit, (
+            , 10))
+
 
 class Object_Map(pygame.sprite.Sprite):
     def __init__(self, image, y, x, cell_size):
@@ -618,9 +619,9 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     start_the_game = True
-                if event.key == pygame.K_o:
+                if event.key == pygame.K_F5:
                     save_game()
-                if event.key == pygame.K_l:
+                if event.key == pygame.K_F9:
                     load_game(board)
 
                 if event.key == pygame.K_p:
