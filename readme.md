@@ -21,12 +21,9 @@
 
 Удар мечом: левая кнопка мыши.
 
-![image](https://user-images.githubusercontent.com/74006664/149569266-6e3d0a34-1f3a-4ade-a73d-176732b7890c.png)
-
-![image](https://user-images.githubusercontent.com/74006664/149567462-31b518c6-2867-44f8-8801-1e4b8ab4f861.png)
-
-![image](https://user-images.githubusercontent.com/74006664/149567905-6dea9661-8311-431c-b7c0-6a50bfe9aec9.png)
+![image](https://user-images.githubusercontent.com/74006664/149631530-a07e78b5-cf25-4ef1-8e10-358a194207e2.png)
+![image](https://user-images.githubusercontent.com/74006664/149631658-d3378c93-bc13-4719-be0f-e9ce0c650842.png)
+![image](https://user-images.githubusercontent.com/74006664/149631701-edb45d02-b39a-4cd6-b23c-39faece33574.png)
 
 ![image](https://user-images.githubusercontent.com/74006664/149566171-34cc94c1-1c46-437d-adec-8889527a9cb9.png)
 
-![image](https://user-images.githubusercontent.com/74006664/149565630-7960cafe-72d3-432b-971f-5b59ea6a9793.png)
